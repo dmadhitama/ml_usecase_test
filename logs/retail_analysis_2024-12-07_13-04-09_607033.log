@@ -1,0 +1,28 @@
+2024-12-07 13:04:09.612 | INFO     | __main__:main:185 - Starting retail customer segmentation analysis
+2024-12-07 13:04:09.613 | INFO     | __main__:load_and_preprocess_data:24 - Loading data from data/Online Retail.xlsx
+2024-12-07 13:04:58.573 | INFO     | __main__:load_and_preprocess_data:28 - Successfully loaded 541909 rows of data
+2024-12-07 13:04:58.573 | INFO     | __main__:load_and_preprocess_data:31 - DataFrame columns:
+2024-12-07 13:04:58.574 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'InvoiceNo' - Type: object
+2024-12-07 13:04:58.574 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'StockCode' - Type: object
+2024-12-07 13:04:58.574 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'Description' - Type: object
+2024-12-07 13:04:58.574 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'Quantity' - Type: int64
+2024-12-07 13:04:58.574 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'InvoiceDate' - Type: datetime64[ns]
+2024-12-07 13:04:58.575 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'UnitPrice' - Type: float64
+2024-12-07 13:04:58.575 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'CustomerID' - Type: float64
+2024-12-07 13:04:58.575 | INFO     | __main__:load_and_preprocess_data:33 - Column: 'Country' - Type: object
+2024-12-07 13:04:58.688 | INFO     | __main__:load_and_preprocess_data:43 - Found CustomerID column as: CustomerID
+2024-12-07 13:04:58.743 | INFO     | __main__:load_and_preprocess_data:54 - Removed 135080 rows with missing CustomerID
+2024-12-07 13:04:58.970 | INFO     | __main__:load_and_preprocess_data:59 - Removed 8905 cancelled orders
+2024-12-07 13:04:58.972 | SUCCESS  | __main__:load_and_preprocess_data:63 - Data preprocessing completed successfully
+2024-12-07 13:04:58.972 | INFO     | __main__:calculate_rfm_metrics:71 - Calculating RFM metrics
+2024-12-07 13:04:59.473 | INFO     | __main__:calculate_rfm_metrics:89 - RFM metrics calculated for 4339 customers
+2024-12-07 13:04:59.473 | INFO     | __main__:perform_customer_segmentation:97 - Performing customer segmentation with 5 clusters
+2024-12-07 13:04:59.926 | INFO     | __main__:perform_customer_segmentation:109 - Clustering completed with silhouette score: 0.360
+2024-12-07 13:04:59.927 | INFO     | __main__:analyze_clusters:117 - Analyzing cluster characteristics
+2024-12-07 13:04:59.931 | INFO     | __main__:main:200 - 
+Cluster Analysis:
+2024-12-07 13:04:59.942 | INFO     | __main__:main:202 - 
+Silhouette Score: 0.360
+2024-12-07 13:04:59.942 | INFO     | __main__:plot_cluster_characteristics:137 - Creating cluster visualization plots
+2024-12-07 13:05:02.552 | SUCCESS  | __main__:plot_cluster_characteristics:169 - Plots saved to analysis_results/cluster_analysis.png
+2024-12-07 13:05:02.552 | SUCCESS  | __main__:main:207 - Analysis completed successfully!

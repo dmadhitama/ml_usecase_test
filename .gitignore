@@ -174,7 +174,7 @@ qdrant_storage/
 data/
 .env*
 analysis_results/
-log/
+logs/
 
 # TBD
 tests/

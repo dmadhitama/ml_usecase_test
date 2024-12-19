@@ -13,7 +13,6 @@ import sys
 import os
 import argparse
 from torchmetrics.classification import MulticlassAccuracy, MulticlassConfusionMatrix
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # Configure logger
 logger.remove()
@@ -165,9 +164,6 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs):
         os.makedirs('models')
         
     try:
-        # Add learning rate scheduler
-        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
-        
         model.train()
         best_loss = float('inf')
         train_losses = []
@@ -202,10 +198,7 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs):
             train_losses.append(epoch_loss)
             train_accuracies.append(epoch_acc)
             
-            logger.info(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%, LR: {optimizer.param_groups[0]["lr"]:.6f}')
-            
-            # Learning rate scheduling
-            scheduler.step(epoch_loss)
+            logger.info(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
             
             # Save model if it has the best loss
             if epoch_loss < best_loss:
@@ -278,6 +271,7 @@ def evaluate_model(model, test_loader, device, num_classes, output_dir):
         plt.title('Confusion Matrix')
         plt.ylabel('True Label')
         plt.xlabel('Predicted Label')
+        plt.grid()
         os.makedirs(output_dir, exist_ok=True)
         plt.savefig(os.path.join(output_dir, 'confusion_matrix.png'))
         plt.close()

@@ -53,14 +53,12 @@ jobs:
       run: |
         python wholesale_analysis.py --input "data/Wholesale customers data.csv" --output output/wholesale
     
-    - name: Upload models and results
+    - name: Upload trained models
       uses: actions/upload-artifact@v4
       with:
         name: trained-models
-        path: |
-          output/wholesale/model.pth
-          output/retail/model.joblib
-          output/*/metrics.json
+        path: output
+        if-no-files-found: error
 
   validate:
     needs: train
@@ -77,11 +75,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Download models
+    - name: Download trained models
       uses: actions/download-artifact@v4
       with:
         name: trained-models
-        path: models/
+        path: output
+    
+    - name: List downloaded files
+      run: |
+        ls -R output/
     
     - name: Create output directory
       run: |
@@ -134,11 +136,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Download models
+    - name: Download trained models
       uses: actions/download-artifact@v4
       with:
         name: trained-models
-        path: models/
+        path: output
+    
+    - name: List downloaded files
+      run: |
+        ls -R output/
     
     - name: Deploy to staging
       run: |

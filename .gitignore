@@ -171,7 +171,7 @@ node_modules/
 auth_info_baileys/
 qdrant_storage/
 .git_backup/
-data/
+# data/
 .env*
 analysis_results/
 logs/

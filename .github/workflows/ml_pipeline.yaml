@@ -14,7 +14,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.8'
+        python-version: '3.10'
     
     - name: Install dependencies
       run: |
@@ -34,7 +34,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.8'
+        python-version: '3.10'
     
     - name: Install dependencies
       run: |
@@ -43,11 +43,11 @@ jobs:
     
     - name: Train retail model
       run: |
-        python retail_analysis.py --data_path data/retail_data.xlsx
+        python retail_analysis.py --input data/retail_data.xlsx --output output/retail
     
     - name: Train wholesale model
       run: |
-        python wholesale_analysis.py --data_path data/wholesale_data.csv
+        python wholesale_analysis.py --input data/wholesale_data.csv --output output/wholesale
     
     - name: Upload models
       uses: actions/upload-artifact@v4
@@ -56,6 +56,7 @@ jobs:
         path: |
           models/*.pth
           models/*.joblib
+          output/*
 
   deploy:
     needs: train

@@ -21,10 +21,6 @@ MODEL_VERSION = "1.0.0"
 logger.remove()
 logger.add(sys.stderr, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
 
-if not os.path.exists("logs"):
-    os.makedirs("logs")
-logger.add("logs/wholesale_analysis_{time}.log", rotation="500 MB")
-
 class WholesaleDataset(Dataset):
     """Custom Dataset for wholesale customers data."""
     def __init__(self, features, labels):
@@ -151,87 +147,64 @@ def prepare_data(df):
     
     return X_train, X_test, y_train, y_test, X.columns
 
-def train_model(model, train_loader, criterion, optimizer, device, num_epochs):
+def train_model(model, train_loader, criterion, optimizer, device, num_epochs, output_dir):
     """Train the neural network."""
-    logger.info("Starting model training")
-
-    # Create directories if they don't exist
-    if not os.path.exists('wholesale_analysis'):
-        os.makedirs('wholesale_analysis')
+    logger.info(f"Training for {num_epochs} epochs")
     
-    if not os.path.exists('checkpoints'):
-        os.makedirs('checkpoints')
+    if not os.path.exists(os.path.join(output_dir, 'plots')):
+        os.makedirs(os.path.join(output_dir, 'plots'))
         
     try:
         model.train()
-        best_loss = float('inf')
         train_losses = []
-        train_accuracies = []
+        best_loss = float('inf')
         
         for epoch in range(num_epochs):
             running_loss = 0.0
             correct = 0
             total = 0
             
-            for inputs, labels in train_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
+            for batch_idx, (data, target) in enumerate(train_loader):
+                data, target = data.to(device), target.to(device)
                 
                 optimizer.zero_grad()
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
+                output = model(data)
+                loss = criterion(output, target)
                 loss.backward()
-                
-                # Gradient clipping to prevent exploding gradients
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                
                 optimizer.step()
                 
                 running_loss += loss.item()
-                _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+                _, predicted = output.max(1)
+                total += target.size(0)
+                correct += predicted.eq(target).sum().item()
+                
+                if batch_idx % 10 == 0:
+                    logger.info(f'Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item():.4f}')
             
             epoch_loss = running_loss / len(train_loader)
-            epoch_acc = 100 * correct / total
-            
             train_losses.append(epoch_loss)
-            train_accuracies.append(epoch_acc)
+            accuracy = 100. * correct / total
             
-            logger.info(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
+            logger.info(f'Epoch {epoch}: Loss = {epoch_loss:.4f}, Accuracy = {accuracy:.2f}%')
             
-            # Save model if it has the best loss
+            # Save best model
             if epoch_loss < best_loss:
                 best_loss = epoch_loss
-                logger.info(f'New best loss: {best_loss:.4f}. Saving model...')
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': best_loss,
-                }, 'checkpoints/best_model.pth')
+                model_path = os.path.join(output_dir, 'model.pth')
+                torch.save(model.state_dict(), model_path)
+                logger.info(f"Saved best model to {model_path}")
 
         # Plot training progress
         plt.figure(figsize=(12, 4))
-        
-        plt.subplot(1, 2, 1)
         plt.plot(train_losses)
-        plt.title('Training Loss')
+        plt.title('Training Loss Over Time')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
-        
-        plt.subplot(1, 2, 2)
-        plt.plot(train_accuracies)
-        plt.title('Training Accuracy')
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy (%)')
-        
-        plt.tight_layout()
-        plt.savefig('wholesale_analysis/training_progress.png')
+        plt.savefig(os.path.join(output_dir, 'plots', 'training_loss.png'))
         plt.close()
         
-        logger.success("Training completed")
-        logger.info(f"Best loss achieved: {best_loss:.4f}")
-        return model
+        return train_losses
+        
     except Exception as e:
         logger.error(f"Error during training: {str(e)}")
         raise
@@ -271,7 +244,6 @@ def evaluate_model(model, test_loader, device, num_classes, output_dir):
         plt.ylabel('True Label')
         plt.xlabel('Predicted Label')
         plt.grid()
-        os.makedirs(output_dir, exist_ok=True)
         plt.savefig(os.path.join(output_dir, 'confusion_matrix.png'))
         plt.close()
         
@@ -334,12 +306,8 @@ def main():
             optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
             
             # Train model
-            train_model(model, train_loader, criterion, optimizer, device, args.epochs)
+            train_model(model, train_loader, criterion, optimizer, device, args.epochs, args.output)
             
-            # Save model
-            model_path = os.path.join(args.output, 'model.pth')
-            torch.save(model.state_dict(), model_path)
-            logger.info(f"Model saved to {model_path}")
         else:
             if not args.model_path:
                 raise ValueError("--model-path is required when using --validate-only")

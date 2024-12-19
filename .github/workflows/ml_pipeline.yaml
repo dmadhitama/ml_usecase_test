@@ -41,13 +41,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
+    - name: Create output directories
+      run: |
+        mkdir -p models output
+    
     - name: Train retail model
       run: |
-        python retail_analysis.py --input data/retail_data.xlsx --output output/retail
+        python retail_analysis.py --input "data/Online Retail.xlsx" --output output/retail
     
     - name: Train wholesale model
       run: |
-        python wholesale_analysis.py --input data/wholesale_data.csv --output output/wholesale
+        python wholesale_analysis.py --input "data/Wholesale customers data.csv" --output output/wholesale
     
     - name: Upload models
       uses: actions/upload-artifact@v4

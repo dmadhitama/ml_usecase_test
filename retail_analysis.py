@@ -11,6 +11,9 @@ from loguru import logger
 import sys
 import os
 
+# Model version
+MODEL_VERSION = "1.0.0"
+
 # Configure logger
 logger.remove()  # Remove default handler
 logger.add(sys.stderr, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")

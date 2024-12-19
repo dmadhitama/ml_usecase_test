@@ -178,6 +178,6 @@ logs/
 checkpoints/
 
 # TBD
-tests/
+# tests/
 Jenkinsfile
-.github/workflows/*
+# .github/workflows/*

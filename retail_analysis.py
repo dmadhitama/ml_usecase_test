@@ -10,6 +10,7 @@ import argparse
 from loguru import logger
 import sys
 import os
+import json
 
 # Model version
 MODEL_VERSION = "1.0.0"
@@ -131,7 +132,9 @@ def analyze_clusters(rfm):
         
         cluster_analysis.columns = ['Avg Recency (days)', 'Avg Frequency', 'Avg Monetary Value', 'Number of Customers']
         
-        return cluster_analysis
+        logger.info("\nCluster Analysis:")
+        print(cluster_analysis)
+        
     except Exception as e:
         logger.error(f"Error analyzing clusters: {str(e)}")
         raise
@@ -174,11 +177,19 @@ def plot_cluster_characteristics(rfm, output_dir):
         logger.error(f"Error creating plots: {str(e)}")
         raise
 
+def save_metrics(metrics, output_dir):
+    """Save model metrics to a JSON file."""
+    metrics_file = os.path.join(output_dir, 'metrics.json')
+    with open(metrics_file, 'w') as f:
+        json.dump(metrics, f, indent=2)
+    logger.info(f"Saved metrics to {metrics_file}")
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Retail Customer Segmentation Analysis')
     parser.add_argument('--input', '-i', required=True, help='Path to the input CSV file')
     parser.add_argument('--output', '-o', default='output', help='Directory to save output files (default: output)')
     parser.add_argument('--clusters', '-c', type=int, default=4, help='Number of clusters for segmentation (default: 4)')
+    parser.add_argument('--validate-only', action='store_true', help='Only validate the model without training')
     return parser.parse_args()
 
 def main():
@@ -187,30 +198,40 @@ def main():
     
     logger.info("Starting retail customer segmentation analysis")
     try:
+        # Create output directory if it doesn't exist
+        os.makedirs(args.output, exist_ok=True)
+        
         # Load and preprocess data
         df = load_and_preprocess_data(args.input)
         
         # Calculate RFM metrics
         rfm = calculate_rfm_metrics(df)
         
-        # Perform customer segmentation
-        rfm, silhouette_score = perform_customer_segmentation(rfm, args.clusters)
+        # Perform clustering
+        rfm, _ = perform_customer_segmentation(rfm, args.clusters)
         
-        # Analyze clusters
-        cluster_analysis = analyze_clusters(rfm)
+        if not args.validate_only:
+            # Analyze clusters
+            analyze_clusters(rfm)
+            
+            # Plot cluster characteristics
+            plot_cluster_characteristics(rfm, args.output)
         
-        # Print results
-        logger.info("\nCluster Analysis:")
-        print(cluster_analysis)
-        logger.info(f"\nSilhouette Score: {silhouette_score:.3f}")
+        # Calculate and save metrics
+        silhouette_avg = silhouette_score(rfm[['Recency', 'Frequency', 'Monetary']], rfm['Cluster'])
+        metrics = {
+            'silhouette_score': float(silhouette_avg),
+            'n_clusters': args.clusters,
+            'n_samples': len(rfm),
+            'model_version': MODEL_VERSION
+        }
+        save_metrics(metrics, args.output)
         
-        # Create visualizations
-        plot_cluster_characteristics(rfm, args.output)
+        logger.success("Analysis completed successfully")
         
-        logger.success("Analysis completed successfully!")
     except Exception as e:
-        logger.error(f"Analysis failed: {str(e)}")
-        sys.exit(1)
+        logger.error(f"Error during analysis: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     main()

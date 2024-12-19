@@ -176,6 +176,8 @@ qdrant_storage/
 analysis_results/
 logs/
 checkpoints/
+output/
+models/
 
 # TBD
 # tests/
